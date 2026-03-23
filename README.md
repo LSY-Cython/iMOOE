@@ -1,3 +1,3 @@
 # iMOOE
 
-Code will come soon within the early month.
+Code will come soon before the early April.
