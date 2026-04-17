@@ -1,0 +1,87 @@
+optim:
+  n_epochs: 500
+  init_lr: 0.001  # options: [0.001, 0.0005]
+  weight_decay: 0.0001
+  lambda_mask: 0.001  # options: [0.01, 0.005, 0.001]
+  lambda_vrex: 0.001
+  lambda_rich: 0.1  # enriching spectral features during ERM pretraining, options: [0.01, 0.1, 1.0]
+  with_temporal_invariance: True  # default: False
+  with_ic_division: True  # whether to treat each initial condition as a separate environment, default: False
+
+  warm_step: 175
+  rich_start_step: 125  # options: [0, 50, 75, 100, 125, 150]
+  rich_end_step: 175
+  const_step: 325
+  step_size: 5
+
+data:
+  path_train: "datasets/data/ns2d/ns2d_train_env16_N1024_S64_T31.pkl"
+  num_env_train: 16
+  n_data_per_env_train: 64
+
+  path_test_id: "datasets/data/ns2d/ns2d_test_id_env16_N128_S64_T31.pkl"
+  path_test_ood: "datasets/data/ns2d/ns2d_test_ood_env16_N128_S64_T31.pkl"
+  num_env_test: 16
+  n_data_per_env_test: 8
+
+  batch_size_train: 32  # options: [16, 20, 24, 32]
+  batch_size_test: 1
+  init_step: 10  # lookback window of initial conditions
+  t_span: 50.0
+  dt: 1.6666
+  dx: 0.015625
+  dy: 0.015625
+  Nt: 31  # options: [21, 31, 51]
+  Nx: 64
+  Ny: 64
+  num_var: 1
+  env_dim: 2
+
+differentiation:
+  diff_order: [1, 2]
+  method: "finite_difference"  # options: [”finite_difference“, "spectral"]
+
+expert:
+  num_expert: 2  # options: [1, 2, 3, 4]
+  in_channels: 1
+  out_channels: 1
+  x_span: 1
+  y_span: 1
+  is_select: True  # options: [DeepONet: False]
+  select_type: "hard"  # options: [hard: 0-1; soft: softmax probability]
+  init_type: "randn"  # options: ["ones", "rand", "randn"]
+  is_op_lin: False  # (non-)linear relations between sub-operators
+
+  fusion:
+    corr_dim: 24  # options: [16, 24, 32]
+    n_layers: 1  # options: [1, 2]
+    modes1: 24  # modes1 = Nx / 2 * (3/4)
+    modes2: 24  # modes2 = Ny / 2 * (3/4)
+
+  FNO2d:
+    exp_out_channels: 1
+    modes1: 24  # modes1 = Nx / 2 * (3/4)
+    modes2: 24  # modes2 = Ny / 2 * (3/4)
+    width: 64  # 10*1+5 -> options: [24, 32, 48, 64]
+    spatial_size: 64  # spatial_size = Nx = Ny, only used for FNO weight initialization
+    n_layers: 4  # options: [2, 4]
+    act_type: "sin"  # options: ["sin", "gelu]
+    padding: 0
+    weight_init: 1  # options: [1, 2, 3, 4]
+
+  OFormerUniform2d:
+    exp_out_channels: 1
+    latent_channels: 64  # equal to 2*encoder_emb_dim, options: [64, 96]
+    encoder_emb_dim: 32  # options: [32, 48]
+    encoder_heads: 1
+    encoder_depth: 4  # options: [2, 4]
+
+output:
+  model_dir: "weights/MoE/ns2d/env16_N1024_Nx64_Ny64_T31"
+
+plot:
+  fig_dir: "figures/MoE/ns2d/env16_N1024_Nx64_Ny64_T31"
+  x_left: -1.0
+  x_right: 1.0
+  y_bottom: -1.0
+  y_top: 1.0
