@@ -16,17 +16,8 @@ class PDEDataset(Dataset):
         with open(self.path, "rb") as f:
             self.data = pkl.load(f)
 
-        # cater for the SubsetRandomSampler in CoDA
         self.model = model
         self.is_adapt = is_adapt
-        if self.model == "CoDA":
-            if self.is_adapt:
-                end_point = 1  # only using 1 trajectory for code_c adaptation
-            else:
-                end_point = n_data_per_env
-            self.len = int(self.num_env * end_point)
-            # indices can be adapted for different Subset samplers...
-            self.indices = [list(range(i*n_data_per_env, (i+1)*n_data_per_env))[0:end_point] for i in range(num_env)]
 
     def __getitem__(self, index):
         env_index = index // self.n_data_per_env
@@ -35,12 +26,6 @@ class PDEDataset(Dataset):
         state = torch.from_numpy(data["state"]).to(torch.float32)  # (Nx, Ny, C, T)
         context = torch.tensor(list(data["env_params"].values())).to(torch.float32)  # pde physical parameters
         time = torch.from_numpy(data["t_step"]).float()
-
-        ######
-        if "sse" in self.path:
-            mask = torch.from_numpy(data["mask"]).to(torch.float32)  # (Nx, Ny)
-            return {"state": state, "mask": mask, "context": context, "time": time, "env_index": env_index, "sample_index": index}
-        ######
 
         return {"state": state, "context": context, "time": time, "env_index": env_index, "sample_index": index}
 
